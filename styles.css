@@ -1,0 +1,58 @@
+body {
+      font-family: Arial, sans-serif;
+      background-color: #faf8ef;
+      color: #776e65;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 400px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 3rem;
+      margin-bottom: 20px;
+    }
+
+    #game-board {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      background-color: #bbada0;
+      padding: 10px;
+      border-radius: 10px;
+      touch-action: none;
+    }
+
+    .tile {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 80px;
+      height: 80px;
+      background-color: #cdc1b4;
+      font-size: 1.5rem;
+      font-weight: bold;
+      border-radius: 5px;
+      color: #776e65;
+    }
+
+    .tile[data-value="2"] { background-color: #eee4da; }
+    .tile[data-value="4"] { background-color: #ede0c8; }
+    .tile[data-value="8"] { background-color: #f2b179; color: #f9f6f2; }
+    .tile[data-value="16"] { background-color: #f59563; color: #f9f6f2; }
+    .tile[data-value="32"] { background-color: #f67c5f; color: #f9f6f2; }
+    .tile[data-value="64"] { background-color: #f65e3b; color: #f9f6f2; }
+    .tile[data-value="128"] { background-color: #edcf72; color: #f9f6f2; }
+    .tile[data-value="256"] { background-color: #edcc61; color: #f9f6f2; }
+    .tile[data-value="512"] { background-color: #edc850; color: #f9f6f2; }
+    .tile[data-value="1024"] { background-color: #edc53f; color: #f9f6f2; }
+    .tile[data-value="2048"] { background-color: #edc22e; color: #f9f6f2; }
+
+    .info {
+      margin-top: 20px;
+      font-size: 1rem;
+    }
