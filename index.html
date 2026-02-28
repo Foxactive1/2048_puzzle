@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+  <!-- ── SEO ── -->
+  <title>2048 NEXUS — Cyberpunk Edition v2.0</title>
+  <meta name="description" content="2048 NEXUS: o clássico 2048 com visual cyberpunk, modos de jogo, conquistas e placar. Jogue grátis no navegador.">
+  <meta name="keywords"    content="2048, jogo 2048, nexus, cyberpunk, puzzle game, jogo browser, html5 game">
+  <meta name="author"      content="Fox Active Games">
+  <meta name="robots"      content="index, follow">
+  <link rel="canonical"    href="https://2048-nexus.vercel.app/">
+
+  <!-- ── Open Graph ── -->
+  <meta property="og:type"         content="website">
+  <meta property="og:url"          content="https://2048-nexus.vercel.app/">
+  <meta property="og:title"        content="2048 NEXUS — Cyberpunk Edition">
+  <meta property="og:description"  content="O clássico 2048 reinventado com estética cyberpunk neon, modos Tempo, Extremo e Zen, conquistas e placar. Jogue grátis!">
+  <meta property="og:image"        content="https://2048-nexus.vercel.app/og-image.png">
+  <meta property="og:image:width"  content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:locale"       content="pt_BR">
+
+  <!-- ── Twitter Card ── -->
+  <meta name="twitter:card"        content="summary_large_image">
+  <meta name="twitter:title"       content="2048 NEXUS — Cyberpunk Edition">
+  <meta name="twitter:description" content="O clássico 2048 com visual neon, modos especiais e conquistas. Jogue grátis!">
+  <meta name="twitter:image"       content="https://2048-nexus.vercel.app/og-image.png">
+
+  <!-- ── Favicon inline SVG ── -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23050511'/><text x='50%' y='54%' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-weight='900' font-size='11' fill='%2300f3ff'>2048</text></svg>">
+
+  <!-- ── Fonts & Icons ── -->
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- ── Stylesheet ── -->
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+<canvas id="particles"></canvas>
+<div id="toast-area"></div>
+
+<!-- Timer -->
+<div id="timer-pill">
+  <i class="fas fa-clock"></i>
+  <span id="timer-text">03:00</span>
+</div>
+
+<!-- Modal fim de jogo -->
+<div class="modal-overlay" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <div class="modal-box">
+    <div class="modal-icon" id="modal-icon">🏆</div>
+    <div class="modal-title" id="modal-title">VITÓRIA!</div>
+    <div class="modal-score" id="modal-score">0</div>
+    <div class="modal-score-label">PONTOS</div>
+    <div class="modal-msg" id="modal-msg"></div>
+    <div class="modal-btns">
+      <button class="btn btn-cyan" id="btn-restart-modal" style="flex:1">
+        <i class="fas fa-redo"></i> Novo Jogo
+      </button>
+      <button class="btn btn-magenta" id="btn-continue-modal" style="flex:1;display:none">
+        <i class="fas fa-play"></i> Continuar
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Main -->
+<div class="wrapper">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="logo-area">
+      <h1>2048</h1>
+      <div class="ver">NEXUS · V2.0</div>
+    </div>
+    <div class="stats-row">
+      <div class="stat">
+        <div class="stat-label">Score</div>
+        <div class="stat-value" id="score">0</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Melhor</div>
+        <div class="stat-value" id="best">0</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Moves</div>
+        <div class="stat-value" id="moves">0</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Combo banner -->
+  <div id="combo-banner" aria-live="polite">
+    <span class="combo-flame">🔥</span>
+    <span id="combo-text">COMBO ×2</span>
+    <span class="combo-flame">🔥</span>
+  </div>
+
+  <!-- Seletores -->
+  <div class="selectors">
+    <div class="sel-group" id="size-btns" role="group" aria-label="Tamanho do tabuleiro">
+      <button class="chip active" data-size="4">4×4</button>
+      <button class="chip" data-size="5">5×5</button>
+    </div>
+    <div class="sel-group" id="mode-btns" role="group" aria-label="Modo de jogo">
+      <button class="chip active" data-mode="classic">Clássico</button>
+      <button class="chip mode-time" data-mode="time">⏱ Tempo</button>
+      <button class="chip mode-extreme" data-mode="extreme">💀 Extremo</button>
+      <button class="chip mode-zen" data-mode="zen">🌿 Zen</button>
+    </div>
+  </div>
+
+  <!-- Tabuleiro -->
+  <div class="board-wrapper">
+    <div id="game-board" class="board-4" role="grid" aria-label="Tabuleiro 2048"></div>
+  </div>
+
+  <!-- Controles -->
+  <div class="controls">
+    <button class="btn btn-cyan" id="btn-undo" disabled aria-label="Desfazer jogada">
+      <i class="fas fa-undo"></i> Desfazer
+    </button>
+    <button class="btn btn-magenta" id="btn-restart" aria-label="Reiniciar jogo">
+      <i class="fas fa-redo-alt"></i> Reiniciar
+    </button>
+  </div>
+
+  <!-- Sessão atual -->
+  <div class="panel">
+    <div class="panel-title"><i class="fas fa-chart-bar"></i> Sessão Atual</div>
+    <div class="session-stats">
+      <div class="ss-item">
+        <div class="ss-val" id="ss-tile">–</div>
+        <div class="ss-label">Maior Tile</div>
+      </div>
+      <div class="ss-item">
+        <div class="ss-val" id="ss-combo">0</div>
+        <div class="ss-label">Melhor Combo</div>
+      </div>
+      <div class="ss-item">
+        <div class="ss-val" id="ss-eff">–</div>
+        <div class="ss-label">Eficiência</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Conquistas -->
+  <div class="panel">
+    <div class="panel-title"><i class="fas fa-trophy"></i> Conquistas</div>
+    <div class="ach-grid">
+      <div class="ach-item" data-ach="first-win">
+        <div class="ach-icon">🎯</div>
+        <div class="ach-name">Primeira Vitória</div>
+      </div>
+      <div class="ach-item" data-ach="speed-demon">
+        <div class="ach-icon">⚡</div>
+        <div class="ach-name">Veloz</div>
+      </div>
+      <div class="ach-item" data-ach="combo-master">
+        <div class="ach-icon">🔥</div>
+        <div class="ach-name">Combo ×5</div>
+      </div>
+      <div class="ach-item" data-ach="high-scorer">
+        <div class="ach-icon">💎</div>
+        <div class="ach-name">10k Pts</div>
+      </div>
+      <div class="ach-item" data-ach="precision">
+        <div class="ach-icon">🎲</div>
+        <div class="ach-name">Precisão</div>
+      </div>
+      <div class="ach-item" data-ach="survivor">
+        <div class="ach-icon">🛡️</div>
+        <div class="ach-name">Sobrevivente</div>
+      </div>
+      <div class="ach-item" data-ach="4096-club">
+        <div class="ach-icon">🌌</div>
+        <div class="ach-name">Clube 4096</div>
+      </div>
+      <div class="ach-item" data-ach="5x5-master">
+        <div class="ach-icon">🏅</div>
+        <div class="ach-name">Mestre 5×5</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Leaderboard -->
+  <div class="panel">
+    <div class="panel-title"><i class="fas fa-star"></i> Top Recordes</div>
+    <div class="lb-list" id="lb-list"></div>
+  </div>
+
+</div>
+
+<!-- ── Script ── -->
+<script src="./game.js" defer></script>
+</body>
+</html>
