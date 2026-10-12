@@ -1,62 +1,51 @@
-# 2048 - Mobile
+# 2048 NEXUS
 
-Este é um jogo 2048 projetado para dispositivos móveis, com interface intuitiva e suporte a controles por toque e teclado. O jogo foi desenvolvido utilizando HTML, CSS, JavaScript e Bootstrap, garantindo uma experiência responsiva e estilizada.
+Jogo 2048 com identidade neon e interface adaptável para celulares, tablets e desktops. HTML, CSS e JavaScript puro, sem build ou framework.
 
-Recursos
+## Jogar
 
-Tabuleiro 4x4.
+- Deslize **sobre o tabuleiro** com dedo, caneta ou mouse.
+- Use as setas do teclado, WASD ou os botões direcionais.
+- Combine peças iguais para chegar ao 2048. Desfazer recupera a última jogada válida; Ctrl/Cmd+Z também funciona.
+- Tabule pelos controles. A página permite zoom e rolagem fora do tabuleiro, e respeita a preferência do sistema por movimento reduzido.
 
-Controles por toque e teclado.
+## Modos
 
-Interface responsiva com design elegante.
+| Modo | Regra |
+| --- | --- |
+| Clássico | Alcance 2048 e escolha continuar. |
+| Tempo | 3 minutos; pausa ao ocultar a aba e retoma ao continuar após uma vitória. |
+| Extremo | Todas as novas peças valem 4. |
+| Zen | Sem relógio ou interrupção ao chegar ao 2048; encerra quando não há movimentos. |
 
-Cálculo automático de pontuação.
+Tabuleiros 4×4 e 5×5, combos, conquistas e cinco melhores resultados. Recordes e conquistas são locais ao navegador, sem ranking online. A partida atual não é restaurada ao recarregar.
 
+## Executar
 
-Tecnologias Utilizadas
+```bash
+python -m http.server 8000
+```
 
-HTML5: Estrutura do jogo.
+Abra http://localhost:8000. Também é possível abrir `index.html` diretamente. As fontes e os ícones usam CDN; as fontes têm fallback do sistema.
 
-CSS3: Estilização e layout responsivo (agora em arquivo externo).
+## Validar
 
-JavaScript: Lógica do jogo e manipulação dinâmica do DOM.
+```bash
+node --check game.js
+node tests/engine.cjs
+npm install --no-save playwright
+npx playwright install chromium
+node tests/browser.cjs
+```
 
-Bootstrap 5: Estilização adicional e responsividade.
+O teste verifica larguras de 320 a 1440 pixels, ausência de overflow horizontal, tamanhos do tabuleiro, controles, desfazer após movimento inválido, continuação do timer, fim do modo Zen e armazenamento indisponível. A validação automatizada usa Chromium; testes físicos em Safari/iOS e Android ainda são recomendados.
 
+## Estrutura e deploy
 
-Como Jogar
+- `index.html`: interface e metadados.
+- `style.css`: tema neon, layout, acessibilidade e animações.
+- `game.js`: regras, gestos e armazenamento local.
+- `vercel.json`: headers e revalidação dos arquivos para evitar versões antigas no cache.
+- `tests/browser.cjs`: regressões de interface e jogabilidade.
 
-1. Mover as Peças:
-
-Use as teclas de seta (↑, ↓, ←, →) ou deslize com o dedo para mover as peças.
-
-
-
-2. Objetivo:
-
-Combine as peças para atingir o valor de 2048.
-
-
-Arquitetura do Projeto
-
-index.html: Estrutura principal da aplicação.
-
-styles.css: Arquivo externo contendo a estilização personalizada.
-
-script.js: Contém a lógica do jogo.
-
-
-Funcionalidades Futuras
-
-Sistema de salvamento de progresso.
-
-Animações para movimentação das peças.
-
-Modal para exibir as regras do jogo.
-
-
-No final, mova o bloco <style> do HTML para um arquivo chamado styles.css e importe-o com a seguinte linha dentro do <head> do seu HTML:
-
-<link rel="stylesheet" href="styles.css">
-
-Se precisar de ajuda na criação ou estruturação do arquivo CSS externo, é só avisar!
+Na Vercel use o preset **Other**, sem comando de build, com a raiz do repositório como diretório de saída. Esta versão é uma aplicação web responsiva, não um aplicativo nativo ou PWA offline.

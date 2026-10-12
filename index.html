@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
   <!-- ── SEO ── -->
   <title>2048 NEXUS — Cyberpunk Edition v2.0</title>
@@ -10,23 +10,19 @@
   <meta name="keywords"    content="2048, jogo 2048, nexus, cyberpunk, puzzle game, jogo browser, html5 game">
   <meta name="author"      content="Fox Active Games">
   <meta name="robots"      content="index, follow">
-  <link rel="canonical"    href="https://2048-nexus.vercel.app/">
+  <link rel="canonical"    href="https://2048-puzzle-omega.vercel.app/">
 
   <!-- ── Open Graph ── -->
   <meta property="og:type"         content="website">
-  <meta property="og:url"          content="https://2048-nexus.vercel.app/">
+  <meta property="og:url"          content="https://2048-puzzle-omega.vercel.app/">
   <meta property="og:title"        content="2048 NEXUS — Cyberpunk Edition">
   <meta property="og:description"  content="O clássico 2048 reinventado com estética cyberpunk neon, modos Tempo, Extremo e Zen, conquistas e placar. Jogue grátis!">
-  <meta property="og:image"        content="https://2048-nexus.vercel.app/og-image.png">
-  <meta property="og:image:width"  content="1200">
-  <meta property="og:image:height" content="630">
   <meta property="og:locale"       content="pt_BR">
 
   <!-- ── Twitter Card ── -->
   <meta name="twitter:card"        content="summary_large_image">
   <meta name="twitter:title"       content="2048 NEXUS — Cyberpunk Edition">
   <meta name="twitter:description" content="O clássico 2048 com visual neon, modos especiais e conquistas. Jogue grátis!">
-  <meta name="twitter:image"       content="https://2048-nexus.vercel.app/og-image.png">
 
   <!-- ── Favicon inline SVG ── -->
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23050511'/><text x='50%' y='54%' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-weight='900' font-size='11' fill='%2300f3ff'>2048</text></svg>">
@@ -41,10 +37,10 @@
 <body>
 
 <canvas id="particles"></canvas>
-<div id="toast-area"></div>
+<div id="toast-area" role="status" aria-live="polite"></div>
 
 <!-- Timer -->
-<div id="timer-pill">
+<div id="timer-pill" role="timer" aria-label="Tempo restante">
   <i class="fas fa-clock"></i>
   <span id="timer-text">03:00</span>
 </div>
@@ -69,17 +65,19 @@
 </div>
 
 <!-- Main -->
-<div class="wrapper">
+<main class="wrapper">
+  <div class="intro"><span class="eyebrow">UM CLÁSSICO. INFINITAS POSSIBILIDADES.</span><p>Combine números. Encontre seu ritmo.</p></div>
+  <section class="play-area" aria-label="Jogo">
 
   <!-- Header -->
   <div class="header">
     <div class="logo-area">
       <h1>2048</h1>
-      <div class="ver">NEXUS · V2.0</div>
+      <div class="ver">NEXUS · PLAY EVERYWHERE</div>
     </div>
     <div class="stats-row">
       <div class="stat">
-        <div class="stat-label">Score</div>
+        <div class="stat-label">Pontos</div>
         <div class="stat-value" id="score">0</div>
       </div>
       <div class="stat">
@@ -87,12 +85,13 @@
         <div class="stat-value" id="best">0</div>
       </div>
       <div class="stat">
-        <div class="stat-label">Moves</div>
+        <div class="stat-label">Jogadas</div>
         <div class="stat-value" id="moves">0</div>
       </div>
     </div>
   </div>
 
+  <p class="game-subtitle">Seu próximo movimento pode mudar tudo.</p>
   <!-- Combo banner -->
   <div id="combo-banner" aria-live="polite">
     <span class="combo-flame">🔥</span>
@@ -116,7 +115,7 @@
 
   <!-- Tabuleiro -->
   <div class="board-wrapper">
-    <div id="game-board" class="board-4" role="grid" aria-label="Tabuleiro 2048"></div>
+    <div id="game-board" class="board-4" role="group" tabindex="0" aria-label="Tabuleiro 2048" aria-describedby="game-help"></div>
   </div>
 
   <!-- Controles -->
@@ -129,13 +128,18 @@
     </button>
   </div>
 
+  <div class="direction-pad" role="group" aria-label="Controles de direção"><button class="btn" data-dir="up" aria-label="Mover para cima">↑</button><button class="btn" data-dir="left" aria-label="Mover para esquerda">←</button><button class="btn" data-dir="down" aria-label="Mover para baixo">↓</button><button class="btn" data-dir="right" aria-label="Mover para direita">→</button></div>
+  <p class="game-help" id="game-help">Deslize no tabuleiro, use as setas ou WASD, ou toque nos controles.</p>
+  <p id="mode-help" class="game-help">Junte peças iguais até chegar ao 2048.</p>
+  </section>
+  <aside class="insights" aria-label="Estatísticas e conquistas">
   <!-- Sessão atual -->
   <div class="panel">
     <div class="panel-title"><i class="fas fa-chart-bar"></i> Sessão Atual</div>
     <div class="session-stats">
       <div class="ss-item">
         <div class="ss-val" id="ss-tile">–</div>
-        <div class="ss-label">Maior Tile</div>
+        <div class="ss-label">Maior peça</div>
       </div>
       <div class="ss-item">
         <div class="ss-val" id="ss-combo">0</div>
@@ -193,7 +197,9 @@
     <div class="lb-list" id="lb-list"></div>
   </div>
 
-</div>
+</aside>
+<footer>2048 NEXUS <span>Uma jogada de cada vez · InNovaIdeia</span></footer>
+</main>
 
 <!-- ── Script ── -->
 <script src="./game.js" defer></script>

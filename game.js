@@ -44,6 +44,7 @@ class Particle {
 }
 
 function spawnParticles(x, y, color, count = 16) {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   for (let i = 0; i < count; i++) particles.push(new Particle(x, y, color));
 }
 
@@ -70,9 +71,18 @@ let comboCount = 0, bestCombo = 0, highestTile = 0;
 let lastMergeTime = 0;
 const COMBO_WINDOW = 800;
 
-let achievements = JSON.parse(localStorage.getItem('2048-nexus-ach-v2')) || {};
-let leaderboard  = JSON.parse(localStorage.getItem('2048-nexus-lb-v2'))  || [];
-let bestScore    = parseInt(localStorage.getItem('2048-nexus-best-v2'))  || 0;
+function readStorage(key, fallback) {
+  try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; }
+}
+function writeStorage(key, value) {
+  try { localStorage.setItem(key, typeof value === 'string' ? value : JSON.stringify(value)); } catch { /* Private mode: keep playing in memory. */ }
+}
+let achievements = readStorage('2048-nexus-ach-v2', {});
+if (!achievements || typeof achievements !== 'object' || Array.isArray(achievements)) achievements = {};
+let leaderboard = readStorage('2048-nexus-lb-v2', []);
+if (!Array.isArray(leaderboard)) leaderboard = [];
+leaderboard = leaderboard.filter(e => e && Number.isFinite(e.score) && typeof e.size === 'string' && typeof e.mode === 'string' && typeof e.date === 'string').slice(0, 5);
+let bestScore = Number(readStorage('2048-nexus-best-v2', 0)) || 0;
 
 // ── DOM refs ───────────────────────────────────
 const gameBoard   = document.getElementById('game-board');
@@ -103,7 +113,8 @@ function initGame() {
   score      = 0; moves = 0;
   gameActive = true; hasWon = false;
   prevState  = null;
-  comboCount = 0; bestCombo = 0; highestTile = 0;
+  comboCount = 0; bestCombo = 0; highestTile = 0; lastMergeTime = 0;
+  isMoving = false;
 
   if (timerRef) clearInterval(timerRef);
   timerPill.classList.remove('active', 'urgent');
@@ -116,6 +127,7 @@ function initGame() {
   }
 
   addTile(); addTile();
+  highestTile = Math.max(...board.flat());
   renderBoard(false);
   updateStats();
   updateSession();
@@ -128,6 +140,7 @@ function initGame() {
 }
 
 function startTimer() {
+  clearInterval(timerRef);
   timerRef = setInterval(() => {
     timeLeft--;
     updateTimerDisplay();
@@ -162,13 +175,15 @@ function renderBoard(animated = true) {
     row.forEach((v, c) => {
       const tile = document.createElement('div');
       tile.className = 'tile';
+      tile.setAttribute('aria-label', `Linha ${r + 1}, coluna ${c + 1}: ${v || 'vazia'}`);
+      if (v >= 16384) tile.setAttribute('data-large', '');
       if (v > 0) {
         tile.textContent = v;
         tile.setAttribute('data-v', v);
         const isMerge = animated && mergedCells.some(m => m.r === r && m.c === c);
         const isNew   = animated && newCells.some(n => n.r === r && n.c === c);
-        tile.classList.add(isMerge ? 'merged' : 'filled');
-        if (isNew && !isMerge) tile.classList.add('filled');
+        if (isMerge) tile.classList.add('merged');
+        else if (isNew) tile.classList.add('filled');
       }
       frag.appendChild(tile);
     });
@@ -205,6 +220,7 @@ function handleMoveWithPositions(dir) {
   isMoving = true;
 
   const snap = JSON.stringify(board);
+  const previousUndo = prevState;
   saveState();
   mergedCells = [];
 
@@ -217,7 +233,7 @@ function handleMoveWithPositions(dir) {
         score   = Math.floor(score);
         if (score > bestScore) {
           bestScore = score;
-          localStorage.setItem('2048-nexus-best-v2', bestScore);
+          writeStorage('2048-nexus-best-v2', bestScore);
         }
         if (r[i].v > highestTile) highestTile = r[i].v;
         const finalPos = i + colOffset;
@@ -288,7 +304,7 @@ function handleMoveWithPositions(dir) {
     checkGameStatus();
     checkAchievements();
   } else {
-    prevState = null;
+    prevState = previousUndo;
   }
 
   setTimeout(() => { isMoving = false; }, 120);
@@ -302,18 +318,19 @@ function transpose(m) {
 function saveState() {
   prevState = {
     board: JSON.parse(JSON.stringify(board)),
-    score, moves, comboCount, highestTile, bestCombo
+    score, moves, comboCount, highestTile, bestCombo, lastMergeTime
   };
 }
 
 function undo() {
-  if (!prevState) return;
+  if (!prevState || !gameActive || isMoving) return;
   board       = JSON.parse(JSON.stringify(prevState.board));
   score       = prevState.score;
   moves       = prevState.moves;
   comboCount  = prevState.comboCount;
   highestTile = prevState.highestTile;
   bestCombo   = prevState.bestCombo;
+  lastMergeTime = prevState.lastMergeTime;
   prevState   = null;
   mergedCells = []; newCells = [];
   renderBoard(false);
@@ -342,13 +359,13 @@ function checkGameStatus() {
   if (max >= 2048 && !hasWon && gameMode !== 'zen') {
     hasWon = true;
     unlockAch('first-win');
-    setTimeout(() => endGame(true, `Você chegou ao 2048! 🎉`), 300);
+    endGame(true, `Você chegou ao 2048! 🎉`);
     return;
   }
 
   if (max >= 4096) unlockAch('4096-club');
-  if (gameMode !== 'zen' && !hasMoves()) {
-    setTimeout(() => endGame(false, `Sem movimentos disponíveis.`), 200);
+  if (!hasMoves()) {
+    endGame(false, `Sem movimentos disponíveis.`);
   }
 }
 
@@ -364,7 +381,7 @@ function hasMoves() {
 
 function endGame(win, msg) {
   if (!gameActive) return;
-  if (gameMode === 'zen') return;
+
   gameActive = false;
   if (timerRef) clearInterval(timerRef);
 
@@ -376,7 +393,7 @@ function endGame(win, msg) {
     });
     leaderboard.sort((a, b) => b.score - a.score);
     leaderboard = leaderboard.slice(0, 5);
-    localStorage.setItem('2048-nexus-lb-v2', JSON.stringify(leaderboard));
+    writeStorage('2048-nexus-lb-v2', JSON.stringify(leaderboard));
     renderLeaderboard();
   }
 
@@ -387,6 +404,7 @@ function endGame(win, msg) {
   modalMsg.textContent   = `${msg} ${moves} jogadas · Melhor tile: ${highestTile}`;
   btnContinue.style.display = win ? 'flex' : 'none';
   modal.classList.add('show');
+  btnRestartM.focus();
 }
 
 // ── Achievements ───────────────────────────────
@@ -403,7 +421,7 @@ function checkAchievements() {
 function unlockAch(id) {
   if (achievements[id]) return;
   achievements[id] = true;
-  localStorage.setItem('2048-nexus-ach-v2', JSON.stringify(achievements));
+  writeStorage('2048-nexus-ach-v2', JSON.stringify(achievements));
   const el = document.querySelector(`[data-ach="${id}"]`);
   if (el) el.classList.add('unlocked');
   const name = el ? el.querySelector('.ach-name').textContent : id;
@@ -427,11 +445,13 @@ function renderLeaderboard() {
   leaderboard.forEach((entry, i) => {
     const row = document.createElement('div');
     row.className = 'lb-row';
-    row.innerHTML = `
-      <div class="lb-rank">${i === 0 ? '👑' : i + 1}</div>
-      <div class="lb-score">${entry.score.toLocaleString()}</div>
-      <div class="lb-meta">${entry.size} · ${entry.mode} · ${entry.date}</div>
-    `;
+    const values = [i === 0 ? '👑' : i + 1, entry.score.toLocaleString('pt-BR'), `${entry.size} · ${entry.mode} · ${entry.date}`];
+    ['lb-rank', 'lb-score', 'lb-meta'].forEach((className, index) => {
+      const cell = document.createElement('div');
+      cell.className = className;
+      cell.textContent = values[index];
+      row.appendChild(cell);
+    });
     lbList.appendChild(row);
   });
 }
@@ -461,47 +481,47 @@ function getTileColor(v) {
 
 // ── Event Listeners ────────────────────────────
 document.addEventListener('keydown', e => {
-  const map = { ArrowUp:'up', ArrowDown:'down', ArrowLeft:'left', ArrowRight:'right' };
+  if (modal.classList.contains('show')) {
+    if (e.key === 'Tab') {
+      const buttons = [...modal.querySelectorAll('button')].filter(b => b.style.display !== 'none');
+      const first = buttons[0], last = buttons[buttons.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+    return;
+  }
+  if (e.target.matches('input, textarea, select') || e.ctrlKey || e.metaKey) {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'z') { e.preventDefault(); undo(); }
+    return;
+  }
+  const map = { ArrowUp:'up', ArrowDown:'down', ArrowLeft:'left', ArrowRight:'right', w:'up', s:'down', a:'left', d:'right' };
   if (map[e.key]) { e.preventDefault(); handleMoveWithPositions(map[e.key]); }
   if ((e.ctrlKey || e.metaKey) && e.key === 'z') { e.preventDefault(); undo(); }
 });
 
-// Touch swipe
-let tx = 0, ty = 0;
-document.addEventListener('touchstart', e => {
-  if (!gameActive) return;
-  tx = e.touches[0].clientX;
-  ty = e.touches[0].clientY;
-}, { passive: true });
-
-document.addEventListener('touchmove',  e => e.preventDefault(), { passive: false });
-
-document.addEventListener('touchend', e => {
-  if (!gameActive) return;
-  const dx = e.changedTouches[0].clientX - tx;
-  const dy = e.changedTouches[0].clientY - ty;
-  if (Math.max(Math.abs(dx), Math.abs(dy)) < 18) return;
-  if (Math.abs(dx) > Math.abs(dy)) handleMoveWithPositions(dx > 0 ? 'right' : 'left');
-  else                             handleMoveWithPositions(dy > 0 ? 'down'  : 'up');
+// Unified touch, pen and mouse gestures, limited to the board.
+let gesture = null;
+gameBoard.addEventListener('pointerdown', e => {
+  if (!gameActive || !e.isPrimary || e.button !== 0) return;
+  gesture = { id: e.pointerId, x: e.clientX, y: e.clientY };
+  gameBoard.setPointerCapture(e.pointerId);
+  gameBoard.focus({ preventScroll: true });
 });
-
-// Mouse swipe
-let mx = 0, my = 0, mdown = false;
-gameBoard.addEventListener('mousedown', e => { if (!gameActive) return; mx = e.clientX; my = e.clientY; mdown = true; });
-document.addEventListener('mouseup', e => {
-  if (!mdown) return;
-  mdown = false;
-  const dx = e.clientX - mx, dy = e.clientY - my;
-  if (Math.max(Math.abs(dx), Math.abs(dy)) < 18) return;
-  if (Math.abs(dx) > Math.abs(dy)) handleMoveWithPositions(dx > 0 ? 'right' : 'left');
-  else                             handleMoveWithPositions(dy > 0 ? 'down'  : 'up');
+gameBoard.addEventListener('pointerup', e => {
+  if (!gesture || gesture.id !== e.pointerId) return;
+  const dx = e.clientX - gesture.x, dy = e.clientY - gesture.y;
+  gesture = null;
+  if (Math.max(Math.abs(dx), Math.abs(dy)) < 24) return;
+  handleMoveWithPositions(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up'));
 });
+gameBoard.addEventListener('pointercancel', () => { gesture = null; });
+document.querySelectorAll('[data-dir]').forEach(button => button.addEventListener('click', () => handleMoveWithPositions(button.dataset.dir)));
 
 // Buttons
 btnRestart.addEventListener('click', initGame);
 btnUndo.addEventListener('click', undo);
 btnRestartM.addEventListener('click', initGame);
-btnContinue.addEventListener('click', () => { modal.classList.remove('show'); gameActive = true; });
+btnContinue.addEventListener('click', () => { modal.classList.remove('show'); gameActive = true; gameBoard.focus(); if (gameMode === 'time' && timeLeft > 0) startTimer(); checkGameStatus(); });
 
 // Size chips
 document.getElementById('size-btns').addEventListener('click', e => {
@@ -509,6 +529,7 @@ document.getElementById('size-btns').addEventListener('click', e => {
   if (!chip) return;
   document.querySelectorAll('#size-btns .chip').forEach(c => c.classList.remove('active'));
   chip.classList.add('active');
+  chip.parentElement.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', c === chip));
   bSize = parseInt(chip.dataset.size);
   initGame();
 });
@@ -519,13 +540,15 @@ document.getElementById('mode-btns').addEventListener('click', e => {
   if (!chip) return;
   document.querySelectorAll('#mode-btns .chip').forEach(c => c.classList.remove('active'));
   chip.classList.add('active');
+  chip.parentElement.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', c === chip));
   gameMode = chip.dataset.mode;
   const msgs = {
     classic: '♟ Modo Clássico!',
     time:    '⏱ Modo Contra o Tempo — 3 minutos!',
     extreme: '💀 Modo Extremo — apenas tiles 4!',
-    zen:     '🌿 Modo Zen — sem game over, relaxe!'
+    zen:     '🌿 Modo Zen — sem limite de tempo, relaxe!'
   };
+  document.getElementById('mode-help').textContent = { classic: 'Junte peças iguais até chegar ao 2048.', time: 'Você tem 3 minutos. O relógio pausa ao sair desta aba.', extreme: 'Novas peças sempre valem 4. Planeje cada movimento.', zen: 'Sem relógio ou interrupção ao atingir 2048. Jogue no seu ritmo.' }[gameMode];
   showToast(msgs[gameMode]);
   initGame();
 });
@@ -538,6 +561,8 @@ document.addEventListener('visibilitychange', () => {
     startTimer();
   }
 });
+
+document.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', c.classList.contains('active')));
 
 // ── Boot ───────────────────────────────────────
 loadAchievements();

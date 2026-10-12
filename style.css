@@ -20,11 +20,11 @@ body {
     radial-gradient(ellipse at 15% 10%, rgba(0,243,255,0.07) 0%, transparent 40%),
     radial-gradient(ellipse at 85% 90%, rgba(255,0,255,0.07) 0%, transparent 40%),
     radial-gradient(ellipse at 50% 50%, rgba(0,255,157,0.03) 0%, transparent 60%);
-  font-family: 'Rajdhani', sans-serif;
+  font-family: 'Rajdhani', system-ui, sans-serif;
   color: #fff;
   min-height: 100vh;
   overflow-x: hidden;
-  touch-action: none;
+  touch-action: pan-y;
 }
 
 canvas#particles {
@@ -53,7 +53,7 @@ canvas#particles {
 }
 
 .logo-area h1 {
-  font-family: 'Orbitron', sans-serif;
+  font-family: 'Orbitron', system-ui, sans-serif;
   font-size: 2.6rem;
   font-weight: 900;
   line-height: 1;
@@ -106,7 +106,7 @@ canvas#particles {
 }
 
 .stat-value {
-  font-family: 'Orbitron', sans-serif;
+  font-family: 'Orbitron', system-ui, sans-serif;
   font-size: 1.4rem;
   font-weight: 700;
   color: var(--neon);
@@ -129,7 +129,7 @@ canvas#particles {
   justify-content: center;
   gap: 10px;
   margin-bottom: 10px;
-  font-family: 'Orbitron', sans-serif;
+  font-family: 'Orbitron', system-ui, sans-serif;
   font-size: 0.85rem;
   letter-spacing: 2px;
   color: var(--warn);
@@ -169,7 +169,7 @@ canvas#particles {
   color: rgba(255,255,255,0.5);
   border-radius: 8px;
   padding: 7px 14px;
-  font-family: 'Rajdhani', sans-serif;
+  font-family: 'Rajdhani', system-ui, sans-serif;
   font-size: 0.88rem;
   font-weight: 600;
   letter-spacing: 0.5px;
@@ -203,7 +203,7 @@ canvas#particles {
   padding: 8px 18px;
   border-radius: 30px;
   margin-bottom: 14px;
-  font-family: 'Orbitron', sans-serif;
+  font-family: 'Orbitron', system-ui, sans-serif;
   font-size: 1.1rem;
   font-weight: 700;
   background: linear-gradient(135deg, var(--warn), var(--danger));
@@ -248,7 +248,7 @@ canvas#particles {
   display: flex;
   justify-content: center;
   align-items: center;
-  font-family: 'Orbitron', sans-serif;
+  font-family: 'Orbitron', system-ui, sans-serif;
   font-weight: 700;
   border-radius: 10px;
   background: rgba(10,15,40,0.6);
@@ -357,7 +357,7 @@ canvas#particles {
   gap: 8px;
   padding: 13px;
   border-radius: 12px;
-  font-family: 'Rajdhani', sans-serif;
+  font-family: 'Rajdhani', system-ui, sans-serif;
   font-weight: 700;
   font-size: 1rem;
   letter-spacing: 1px;
@@ -397,7 +397,7 @@ canvas#particles {
 }
 
 .panel-title {
-  font-family: 'Orbitron', sans-serif;
+  font-family: 'Orbitron', system-ui, sans-serif;
   font-size: 0.85rem;
   font-weight: 700;
   color: var(--neon);
@@ -425,7 +425,7 @@ canvas#particles {
 }
 
 .ss-val {
-  font-family: 'Orbitron', sans-serif;
+  font-family: 'Orbitron', system-ui, sans-serif;
   font-size: 1.3rem;
   font-weight: 700;
   color: var(--green);
@@ -494,7 +494,7 @@ canvas#particles {
 .lb-row:first-child { border-color: rgba(255,204,0,0.25); background: rgba(255,204,0,0.06); }
 
 .lb-rank {
-  font-family: 'Orbitron', sans-serif;
+  font-family: 'Orbitron', system-ui, sans-serif;
   font-size: 0.75rem;
   color: rgba(255,255,255,0.3);
   width: 20px;
@@ -503,7 +503,7 @@ canvas#particles {
 .lb-row:first-child .lb-rank { color: var(--warn); }
 
 .lb-score {
-  font-family: 'Orbitron', sans-serif;
+  font-family: 'Orbitron', system-ui, sans-serif;
   font-weight: 700;
   color: #fff;
   flex: 1;
@@ -547,7 +547,7 @@ canvas#particles {
 
 .modal-icon  { font-size: 3.5rem; margin-bottom: 12px; }
 .modal-title {
-  font-family: 'Orbitron', sans-serif;
+  font-family: 'Orbitron', system-ui, sans-serif;
   font-size: 2rem;
   font-weight: 900;
   margin-bottom: 8px;
@@ -563,7 +563,7 @@ canvas#particles {
 }
 
 .modal-score {
-  font-family: 'Orbitron', sans-serif;
+  font-family: 'Orbitron', system-ui, sans-serif;
   font-size: 2.5rem;
   font-weight: 900;
   color: #fff;
@@ -589,7 +589,7 @@ canvas#particles {
   color: var(--c0);
   padding: 12px 20px;
   border-radius: 12px;
-  font-family: 'Orbitron', sans-serif;
+  font-family: 'Orbitron', system-ui, sans-serif;
   font-size: 0.8rem;
   font-weight: 700;
   box-shadow: 0 5px 20px rgba(0,243,255,0.4);
@@ -637,4 +637,67 @@ body.extreme-mode #game-board { animation: boardFlicker 4s linear infinite; }
   97%      { opacity: 1; }
   97.5%    { opacity: 0.85; }
   98%      { opacity: 1; }
+}
+
+/* Multiplatform layout */
+body { min-height: 100svh; }
+.wrapper { max-width: 1080px; padding: max(24px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)); transform: none; }
+.intro { margin-bottom: 30px; }
+.eyebrow { color: #80e8ed; font-size: .75rem; font-weight: 700; letter-spacing: 2px; }
+.intro p { font-size: clamp(1.5rem, 4vw, 2.3rem); margin-top: 8px; font-weight: 600; }
+.play-area, .insights { min-width: 0; }
+.header { align-items: center; flex-wrap: wrap; }
+.logo-area h1 { font-size: clamp(2.5rem, 7vw, 4rem); }
+.logo-area .ver { letter-spacing: 1px; color: #b0baca; }
+.stats-row { flex: 1; justify-content: flex-end; gap: 8px; }
+.stat { min-width: 0; padding: 10px; flex: 1; }
+.stat-value { font-size: clamp(.9rem, 3vw, 1.35rem); overflow-wrap: anywhere; }
+.stat-label, .ss-label, .ach-name, .lb-meta { color: #b3bccd; }
+.game-subtitle { color: #b3bccd; }
+.selectors { gap: 10px; }
+.sel-group { flex-wrap: wrap; }
+.chip { min-height: 44px; color: #bac3d6; }
+#game-board { touch-action: none; user-select: none; gap: clamp(5px, 1.8vw, 12px); padding: clamp(7px, 2vw, 14px); grid-auto-rows: 1fr; }
+.tile { min-width: 0; --tc: #fff; --bg1: #48216a; --bg2: #803cad; }
+#game-board.board-5 .tile { font-size: clamp(.65rem, 3.3vw, 1.25rem); }
+.tile[data-large] { font-size: clamp(.6rem, 2.6vw, 1rem) !important; }
+.btn { min-height: 48px; touch-action: manipulation; }
+:focus-visible { outline: 3px solid #ffd86b; outline-offset: 4px; }
+.direction-pad { display: grid; grid-template-columns: repeat(3, 48px); gap: 6px; justify-content: center; margin: 14px auto; }
+.direction-pad button { background: #141d35; border-color: #334960; font-size: 1.5rem; padding: 4px; }
+.direction-pad button:first-child { grid-column: 2; }
+.direction-pad button:nth-child(2) { grid-row: 2; grid-column: 1; }
+.direction-pad button:nth-child(3) { grid-row: 2; grid-column: 2; }
+.direction-pad button:nth-child(4) { grid-row: 2; grid-column: 3; }
+.game-help { text-align: center; color: #b3bccd; font-size: .95rem; margin: 8px 0 16px; }
+.panel-title { letter-spacing: 1.5px; font-size: .8rem; }
+.panel { background: linear-gradient(145deg, #11172c, #0b1020); }
+.ach-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.ach-name { font-size: .75rem; }
+.lb-row { flex-wrap: wrap; }
+.lb-meta { overflow-wrap: anywhere; }
+#timer-pill { position: fixed; top: max(12px, env(safe-area-inset-top)); right: 16px; z-index: 100; font-size: .95rem; }
+#toast-area { top: auto; bottom: max(16px, env(safe-area-inset-bottom)); right: 16px; left: 16px; align-items: center; }
+.toast { max-width: 100%; font-size: .75rem; overflow-wrap: anywhere; }
+.modal-overlay { padding: 16px; overflow-y: auto; }
+.modal-box { max-height: 90svh; overflow-y: auto; }
+.modal-btns { flex-wrap: wrap; }
+footer { color: #a9b4c8; font-size: .85rem; border-top: 1px solid var(--border); padding-top: 20px; margin-top: 24px; display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+@media (min-width: 850px) {
+ .wrapper { display: grid; grid-template-columns: minmax(0, 560px) minmax(0, 1fr); column-gap: 32px; }
+ .intro, footer { grid-column: 1 / -1; }
+ .insights { padding-top: 8px; }
+ .header { gap: 18px; }
+}
+@media (max-width: 420px) {
+ .header { flex-direction: column; align-items: stretch; }
+ .stats-row { width: 100%; }
+ .ach-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+ .wrapper { padding-inline: 12px; }
+ .intro { margin-bottom: 20px; }
+ .panel { padding: 14px; }
+}
+@media (prefers-reduced-motion: reduce) {
+ *, *::before, *::after { animation: none !important; transition: none !important; }
+ #particles { display: none; }
 }

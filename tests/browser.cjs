@@ -1,0 +1,46 @@
+const { chromium } = require('playwright');
+const assert = require('node:assert/strict');
+const path = require('node:path');
+(async () => {
+ const browser = await chromium.launch({headless:true, args:['--no-sandbox']});
+ for (const width of [320,390,768,1024,1440]) {
+  const page = await browser.newPage({viewport:{width,height:900}});
+  await page.route(/fonts.googleapis.com|cdnjs.cloudflare.com/, r=>r.abort());
+  const errors=[]; page.on('pageerror', e=>errors.push(e.message));
+  await page.goto('file://'+path.resolve('index.html'));
+  assert.equal(await page.locator('.tile').count(),16);
+  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth <= innerWidth), `overflow ${width}`);
+  await page.click('[data-size="5"]');
+  assert.equal(await page.locator('.tile').count(),25);
+  assert.ok(await page.evaluate(()=>document.querySelector('#game-board').getBoundingClientRect().right<=innerWidth));
+  await page.click('[data-size="4"]');
+  await page.evaluate(()=>{board=[[2,2,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]];renderBoard(false);});
+  await page.click('[data-dir="left"]'); await page.waitForTimeout(150);
+  assert.equal(await page.evaluate(()=>board[0][0]),4);
+  assert.equal(await page.evaluate(()=>moves),1);
+  await page.evaluate(()=>{board=[[4,8,16,32],[2,4,8,16],[4,8,16,32],[2,4,8,16]];handleMoveWithPositions('left');});
+  await page.waitForTimeout(150);
+  assert.ok(await page.evaluate(()=>!!prevState));
+  await page.click('#btn-undo');
+  assert.equal(await page.evaluate(()=>score),0);
+  await page.click('[data-mode="time"]');
+  await page.evaluate(()=>{board=[[1024,1024,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]];handleMoveWithPositions('left');});
+  assert.ok(await page.locator('#modal').evaluate(e=>e.classList.contains('show')));
+  await page.click('#btn-continue-modal');
+  const before=await page.evaluate(()=>timeLeft); await page.waitForTimeout(1100);
+  assert.ok(await page.evaluate(()=>timeLeft)<before);
+  await page.click('#btn-restart');
+  await page.click('[data-mode="zen"]');
+  await page.evaluate(()=>{board=[[2,4,2,4],[4,2,4,2],[2,4,2,4],[4,2,4,2]];checkGameStatus();});
+  assert.ok(await page.locator('#modal').evaluate(e=>e.classList.contains('show')));
+  assert.deepEqual(errors,[]);
+  console.log(`PASS ${width}px: layout, sizes, controls, undo, timer, Zen`);
+  await page.close();
+ }
+ const page=await browser.newPage();
+ await page.addInitScript(()=>{Storage.prototype.getItem=()=>{throw Error('blocked')};Storage.prototype.setItem=()=>{throw Error('blocked')};});
+ await page.goto('file://'+path.resolve('index.html'));
+ assert.equal(await page.locator('.tile').count(),16);
+ console.log('PASS storage unavailable');
+ await browser.close();
+})().catch(e=>{console.error(e);process.exit(1)});
